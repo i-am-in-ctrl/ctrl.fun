@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html>
+<head> 
+  <title>Easy Maths Quiz</title>
+<link rel="icon" type="image/png" href="https://cdn.pixabay.com/photo/2016/05/31/13/22/maths-1426891_960_720.png">
+
+  <style>
+        body {
+            background-image: url("https://htmlcolorcodes.com/assets/images/colors/celadon-color-solid-background-1920x1080.png");
+            background-repeat: no-repeat; /* Prevents the image from tiling */
+            background-size: cover;      /* Scales the image to cover the entire viewport */
+            background-attachment: fixed;/* Fixes the image position during scrolling */
+            background-color: #cccccc;   /* A fallback color if the image doesn't load */
+        }
+    .container {
+      max-width: 800px;
+      margin: 0 auto;
+      text-align: center;
+
+    input {
+      text-align: center;
+    }
+
+    .spacer {
+      align-items: center;
+      justify-content: center;
+    }
+  </style>
+</head>
+
+<body>
+
+<div class="container">
+
+<h1>Easy Maths Quiz</h1>
+<hr>
+<nav>
+  <a href="index.html">Back to Home</a> |
+  <a href="mediummathsquiz.html">Medium Difficulty</a> |
+  <a href="hardmathsquiz.html">Hard Difficulty</a>
+</nav>
+<hr>
+<h2>Arithmetic</h2>
+
+<fieldset>
+  <legend>1. What is 15 - 7?</legend>
+  <input type="text" class="quizInput" data-answer="8">
+  <span class="result"></span>
+</fieldset>
+
+<fieldset>
+  <legend>2. What is 4 x 8?</legend>
+  <input type="text" class="quizInput" data-answer="32">
+  <span class="result"></span>
+</fieldset>
+
+<fieldset>
+  <legend>3. What is 100 divided by 10?</legend>
+  <input type="text" class="quizInput" data-answer="10">
+  <span class="result"></span>
+</fieldset>
+
+<fieldset>
+  <legend>4. If you have 6 apples and get 3 more, how many do you have?</legend>
+  <input type="text" class="quizInput" data-answer="9">
+  <span class="result"></span>
+</fieldset>
+
+<h2>Geometry</h2>
+
+<fieldset>
+  <legend>1. How many sides does a triangle have?</legend>
+  <input type="text" class="quizInput" data-answer="3">
+  <span class="result"></span>
+</fieldset>
+
+<fieldset>
+  <legend>2. How many corners (vertices) does a cube have?</legend>
+  <input type="text" class="quizInput" data-answer="8">
+  <span class="result"></span>
+</fieldset>
+
+<fieldset>
+  <legend>3. What is the name of a 5-sided shape?</legend>
+  <input type="text" class="quizInput" data-answer="Pentagon">
+  <span class="result"></span>
+</fieldset>
+
+<h2>Patterns & Logic</h2>
+
+<fieldset>
+  <legend>1. What is the next number in the sequence: 2, 4, 6, 8, __?</legend>
+  <input type="text" class="quizInput" data-answer="10">
+  <span class="result"></span>
+</fieldset>
+
+<fieldset>
+  <legend>2. If half of 10 is 5, what is half of 20?</legend>
+  <input type="text" class="quizInput" data-answer="10">
+  <span class="result"></span>
+</fieldset>
+
+<fieldset>
+  <legend>3. I am a number. If you add 3 to me and get 10, what number am I?</legend>
+  <input type="text" class="quizInput" data-answer="7">
+  <span class="result"></span>
+</fieldset>
+
+<!-- Make button visible -->
+<button onclick="checkAnswers()" style="margin-top:20px; padding:10px 20px; font-size:16px;">Check Answers</button>
+
+<div class="spacer"></div>
+
+<script>
+function checkAnswers() {
+  const inputs = document.querySelectorAll('.quizInput');
+  inputs.forEach(input => {
+    const correct = input.dataset.answer.toLowerCase().trim();
+    const user = input.value.toLowerCase().trim();
+    const resultSpan = input.nextElementSibling;
+
+    if(user === correct) {
+      resultSpan.textContent = '✔';
+      resultSpan.style.color = 'green';
+    } else {
+      resultSpan.textContent = '✖';
+      resultSpan.style.color = 'red';
+    }
+  });
+}
+</script>
+
+</div>
+
+</body>
+</html>

@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html>
+<head> 
+  <title>Hard Maths Quiz</title>
+<link rel="icon" type="image/png" href="https://cdn.pixabay.com/photo/2016/05/31/13/22/maths-1426891_960_720.png">
+
+  <style>
+        body {
+            background-image: url("https://htmlcolorcodes.com/assets/images/colors/celadon-color-solid-background-1920x1080.png");
+            background-repeat: no-repeat; /* Prevents the image from tiling */
+            background-size: cover;      /* Scales the image to cover the entire viewport */
+            background-attachment: fixed;/* Fixes the image position during scrolling */
+            background-color: #cccccc;   /* A fallback color if the image doesn't load */
+        }
+    .container {
+      max-width: 900px;
+      margin: 0 auto;
+      text-align: center;
+    }
+
+    input {
+      text-align: center;
+    }
+
+    fieldset {
+      margin-bottom: 15px;
+    }
+  </style>
+</head>
+
+<body>
+
+<div class="container">
+
+<h1>Hard Maths Quiz</h1>
+<hr>
+<nav>
+  <a href="index.html">Back to Home</a> |
+  <a href="mediummathsquiz.html">Easy Difficulty</a> |
+  <a href="hardmathsquiz.html">Medium Difficulty</a>
+</nav>
+<hr>
+<h2>Algebra</h2>
+
+<fieldset>
+  <legend>1. Solve for x: 2x − 7 = 3x − 15</legend>
+  <input type="text" class="quizInput" data-answer="8">
+  <span class="result"></span>
+</fieldset>
+
+<fieldset>
+  <legend>2. Solve for x: 4(x − 3) = 2x + 6</legend>
+  <input type="text" class="quizInput" data-answer="9">
+  <span class="result"></span>
+</fieldset>
+
+<fieldset>
+  <legend>3. Simplify: 3(2x + 5) − 4x</legend>
+  <input type="text" class="quizInput" data-answer="2x+15">
+  <span class="result"></span>
+</fieldset>
+
+<h2>Number & Surds</h2>
+
+<fieldset>
+  <legend>4. Simplify √50</legend>
+  <input type="text" class="quizInput" data-answer="5√2">
+  <span class="result"></span>
+</fieldset>
+
+<fieldset>
+  <legend>5. Write 0.375 as a fraction in its simplest form</legend>
+  <input type="text" class="quizInput" data-answer="3/8">
+  <span class="result"></span>
+</fieldset>
+
+<h2>Geometry</h2>
+
+<fieldset>
+  <legend>6. A right-angled triangle has legs 6 and 8. Find the length of the hypotenuse.</legend>
+  <input type="text" class="quizInput" data-answer="10">
+  <span class="result"></span>
+</fieldset>
+
+<fieldset>
+  <legend>7. Find the interior angle of a regular hexagon.</legend>
+  <input type="text" class="quizInput" data-answer="120">
+  <span class="result"></span>
+</fieldset>
+
+<h2>Sequences & Functions</h2>
+
+<fieldset>
+  <legend>8. Find the 10th term of the sequence: 3n + 2</legend>
+  <input type="text" class="quizInput" data-answer="32">
+  <span class="result"></span>
+</fieldset>
+
+<fieldset>
+  <legend>9. If f(x) = 2x² − 3, find f(4).</legend>
+  <input type="text" class="quizInput" data-answer="29">
+  <span class="result"></span>
+</fieldset>
+
+<h2>Ratio & Proportion</h2>
+
+<fieldset>
+  <legend>10. £450 is shared between A and B in the ratio 2 : 3. How much does B receive?</legend>
+  <input type="text" class="quizInput" data-answer="270">
+  <span class="result"></span>
+</fieldset>
+
+<button onclick="checkAnswers()" style="margin-top:20px; padding:10px 25px; font-size:16px;">
+  Check Answers
+</button>
+
+<script>
+function checkAnswers() {
+  const inputs = document.querySelectorAll('.quizInput');
+  inputs.forEach(input => {
+    const correct = input.dataset.answer.toLowerCase().trim();
+    const user = input.value.toLowerCase().trim();
+    const resultSpan = input.nextElementSibling;
+
+    if (user === correct) {
+      resultSpan.textContent = '✔';
+      resultSpan.style.color = 'green';
+    } else {
+      resultSpan.textContent = '✖';
+      resultSpan.style.color = 'red';
+    }
+  });
+}
+</script>
+
+</div>
+
+</body>
+</html>
