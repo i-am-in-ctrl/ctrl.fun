@@ -1,0 +1,296 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Ping Pong Game</title>
+<style>
+    body {
+        background: black;
+        color: white;
+        text-align: center;
+        font-family: Arial, sans-serif;
+        transition: background 0.3s;
+    }
+
+    canvas {
+        display: block;
+        margin: 20px auto;
+        background: #111;
+        border: 4px solid white;
+    }
+
+    button {
+        padding: 10px 20px;
+        font-size: 18px;
+        cursor: pointer;
+        display: none;
+        margin-top: 10px;
+    }
+</style>
+</head>
+<body>
+
+<h1>Ping Pong</h1>
+<p>W / S = Left Paddle | O / L = Right Paddle | Space = Start</p>
+
+<canvas id="game" width="800" height="400"></canvas>
+
+<button id="restartBtn" onclick="restartGame()">Restart Game</button>
+
+<script>
+const canvas = document.getElementById("game");
+const ctx = canvas.getContext("2d");
+
+let gameRunning = false;
+let gameOver = false;
+
+const WIN_SCORE = 10;
+
+// paddles
+const paddleWidth = 10;
+const basePaddleHeight = 80;
+const basePaddleSpeed = 6;
+
+let leftPaddle = { x: 10, y: 160, h: basePaddleHeight, speed: basePaddleSpeed };
+let rightPaddle = { x: 780, y: 160, h: basePaddleHeight, speed: basePaddleSpeed };
+
+// ball
+let ball = { x: 400, y: 200, r: 8, dx: 5, dy: 3 };
+const speedIncrease = 1.05;
+
+// score
+let leftScore = 0;
+let rightScore = 0;
+
+// input
+const keys = {};
+let lastHit = null;
+
+// power-up
+const powerUp = {
+    x: canvas.width / 2,
+    y: canvas.height / 2,
+    r: 14,
+    active: false,
+    type: null
+};
+
+const POWERUP_EFFECT_TIME = 5000;
+const POWERUP_SPAWN_TIME = 5000;
+
+let powerUpTimeout = null;
+let powerUpSpawnTimer = null;
+
+const POWERUP_SYMBOLS = {
+    0: "⚡",
+    1: "+",
+    2: "−",
+    3: "↷",
+    4: "🐢",
+    5: "●"
+};
+
+document.addEventListener("keydown", e => {
+    keys[e.key.toLowerCase()] = true;
+    if (e.key === " " && !gameOver && !gameRunning) startRound();
+});
+
+document.addEventListener("keyup", e => {
+    keys[e.key.toLowerCase()] = false;
+});
+
+function randomBackground() {
+    const r = Math.floor(Math.random() * 180);
+    const g = Math.floor(Math.random() * 180);
+    const b = Math.floor(Math.random() * 180);
+    document.body.style.background = `rgb(${r},${g},${b})`;
+}
+
+function startRound() {
+    gameRunning = true;
+    lastHit = null;
+
+    ball.x = canvas.width / 2;
+    ball.y = canvas.height / 2;
+
+    const dir = Math.random() > 0.5 ? 1 : -1;
+    ball.dx = 5 * dir;
+    ball.dy = (Math.random() * 4 + 2) * (Math.random() > 0.5 ? 1 : -1);
+
+    powerUp.active = false;
+    powerUp.type = null;
+    schedulePowerUp();
+}
+
+function schedulePowerUp() {
+    clearTimeout(powerUpSpawnTimer);
+    powerUpSpawnTimer = setTimeout(spawnPowerUp, POWERUP_SPAWN_TIME);
+}
+
+function spawnPowerUp() {
+    if (!gameRunning) return;
+
+    powerUp.x = canvas.width / 2;
+    powerUp.y = Math.random() * (canvas.height - 60) + 30;
+    powerUp.type = Math.floor(Math.random() * 6);
+    powerUp.active = true;
+}
+
+function restartGame() {
+    leftScore = 0;
+    rightScore = 0;
+    gameOver = false;
+    gameRunning = false;
+    resetEffects();
+    powerUp.active = false;
+    powerUp.type = null;
+    clearTimeout(powerUpSpawnTimer);
+    document.getElementById("restartBtn").style.display = "none";
+    document.body.style.background = "black";
+}
+
+function resetEffects() {
+    leftPaddle.h = rightPaddle.h = basePaddleHeight;
+    leftPaddle.speed = rightPaddle.speed = basePaddleSpeed;
+    ball.r = 8;
+    ball.dx = Math.sign(ball.dx || 1) * 5;
+}
+
+function applyPowerUp() {
+    if (!lastHit || powerUp.type === null) return;
+
+    clearTimeout(powerUpTimeout);
+
+    switch (powerUp.type) {
+        case 0: ball.dx *= 1.6; ball.dy *= 1.6; break;
+        case 1: (lastHit === "left" ? leftPaddle : rightPaddle).h = 130; break;
+        case 2: (lastHit === "left" ? rightPaddle : leftPaddle).h = 45; break;
+        case 3: ball.dy += lastHit === "left" ? 2 : -2; break;
+        case 4: (lastHit === "left" ? rightPaddle : leftPaddle).speed = 3; break;
+        case 5: ball.r = 14; break;
+    }
+
+    powerUpTimeout = setTimeout(resetEffects, POWERUP_EFFECT_TIME);
+    powerUp.active = false;
+    powerUp.type = null;
+    schedulePowerUp();
+}
+
+function update() {
+    if (!gameRunning || gameOver) return;
+
+    if (keys["w"]) leftPaddle.y -= leftPaddle.speed;
+    if (keys["s"]) leftPaddle.y += leftPaddle.speed;
+    if (keys["o"]) rightPaddle.y -= rightPaddle.speed;
+    if (keys["l"]) rightPaddle.y += rightPaddle.speed;
+
+    leftPaddle.y = Math.max(0, Math.min(canvas.height - leftPaddle.h, leftPaddle.y));
+    rightPaddle.y = Math.max(0, Math.min(canvas.height - rightPaddle.h, rightPaddle.y));
+
+    ball.x += ball.dx;
+    ball.y += ball.dy;
+
+    if (ball.y <= ball.r || ball.y >= canvas.height - ball.r) ball.dy *= -1;
+
+    if (ball.x - ball.r <= leftPaddle.x + paddleWidth &&
+        ball.y >= leftPaddle.y &&
+        ball.y <= leftPaddle.y + leftPaddle.h) {
+        ball.dx *= -speedIncrease;
+        lastHit = "left";
+        randomBackground();
+    }
+
+    if (ball.x + ball.r >= rightPaddle.x &&
+        ball.y >= rightPaddle.y &&
+        ball.y <= rightPaddle.y + rightPaddle.h) {
+        ball.dx *= -speedIncrease;
+        lastHit = "right";
+        randomBackground();
+    }
+
+    if (powerUp.active &&
+        Math.hypot(ball.x - powerUp.x, ball.y - powerUp.y) <= ball.r + powerUp.r) {
+        applyPowerUp();
+    }
+
+    if (ball.x < 0 || ball.x > canvas.width) {
+        ball.x < 0 ? rightScore++ : leftScore++;
+        gameRunning = false;
+        powerUp.active = false;
+        clearTimeout(powerUpSpawnTimer);
+    }
+
+    if (leftScore >= WIN_SCORE || rightScore >= WIN_SCORE) {
+        gameOver = true;
+        document.getElementById("restartBtn").style.display = "inline-block";
+    }
+}
+
+function draw() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+    ctx.strokeStyle = "white";
+    ctx.fillStyle = "white";
+
+    // center line
+    ctx.beginPath();
+    ctx.moveTo(canvas.width / 2, 0);
+    ctx.lineTo(canvas.width / 2, canvas.height);
+    ctx.stroke();
+
+    // paddles
+    ctx.fillRect(leftPaddle.x, leftPaddle.y, paddleWidth, leftPaddle.h);
+    ctx.fillRect(rightPaddle.x, rightPaddle.y, paddleWidth, rightPaddle.h);
+
+    // ball
+    ctx.beginPath();
+    ctx.arc(ball.x, ball.y, ball.r, 0, Math.PI * 2);
+    ctx.fill();
+
+    // power-up
+    if (powerUp.active) {
+        ctx.beginPath();
+        ctx.arc(powerUp.x, powerUp.y, powerUp.r, 0, Math.PI * 2);
+        ctx.stroke();
+
+        ctx.font = "14px Arial";
+        ctx.textAlign = "center";
+        ctx.textBaseline = "middle";
+        ctx.fillText(POWERUP_SYMBOLS[powerUp.type], powerUp.x, powerUp.y);
+    }
+
+    // scores
+    ctx.font = "30px Arial";
+    ctx.textAlign = "center";
+    ctx.textBaseline = "top";
+    ctx.fillText(leftScore, canvas.width / 4, 20);
+    ctx.fillText(rightScore, canvas.width * 3 / 4, 20);
+
+    // centered messages
+    ctx.textAlign = "center";
+    ctx.textBaseline = "middle";
+
+    if (gameOver) {
+        ctx.font = "28px Arial";
+        const winner =
+            leftScore > rightScore ? "Left Player Wins!" : "Right Player Wins!";
+        ctx.fillText(winner, canvas.width / 2, canvas.height / 2);
+    } 
+    else if (!gameRunning) {
+        ctx.font = "20px Arial";
+        ctx.fillText("Press SPACE to serve", canvas.width / 2, canvas.height / 2);
+    }
+}
+
+function loop() {
+    update();
+    draw();
+    requestAnimationFrame(loop);
+}
+
+loop();
+</script>
+
+</body>
+</html>
+sss
