@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Golf Coordinates Game</title>
+<style>
+body {
+  font-family: Arial, sans-serif;
+  background: #1b5e20;
+  color: white;
+  text-align: center;
+}
+#container {
+  display: flex;
+  justify-content: center;
+  gap: 40px;
+  margin-top: 20px;
+}
+canvas {
+  background: #e8f5e9;
+  border: 2px solid #2e7d32;
+}
+input, button {
+  padding: 8px;
+  font-size: 16px;
+}
+</style>
+</head>
+<body>
+
+<h1>⛳ Golf Coordinates Game</h1>
+<p>Look at the graph. Type the coordinates of the flag to score!</p>
+<p>Format: x,y (example: 3,-2)</p>
+
+<div id="container">
+  <div>
+    <h3>Golf Course View</h3>
+    <canvas id="courseCanvas" width="300" height="300"></canvas>
+  </div>
+
+  <div>
+    <h3>Coordinate Map</h3>
+    <canvas id="gridCanvas" width="300" height="300"></canvas>
+  </div>
+</div>
+
+<br>
+<input id="guess" placeholder="Enter coordinates">
+<button id="swingBtn" onclick="checkGuess()">Swing!</button>
+
+<p id="message"></p>
+<p>Score: <span id="score">0</span></p>
+<p>Lives: <span id="lives">3</span></p>
+<p>Time Left: <span id="time">60</span> seconds</p>
+
+<script>
+const scale = 15;
+let target = {x:0, y:0};
+let score = 0;
+let timeLeft = 60;
+let lives = 3;
+let gameOver = false;
+
+const gridCanvas = document.getElementById("gridCanvas");
+const gridCtx = gridCanvas.getContext("2d");
+const courseCanvas = document.getElementById("courseCanvas");
+const courseCtx = courseCanvas.getContext("2d");
+
+let ball = {x:80, y:220};
+let swinging = false;
+let ballMoving = false;
+
+function targetToCourse(){
+  return { x: 150 + target.x * 10, y: 150 - target.y * 10 };
+}
+
+function drawGrid() {
+  gridCtx.clearRect(0,0,300,300);
+  gridCtx.strokeStyle = "#999";
+  for(let i=0;i<=20;i++){
+    gridCtx.beginPath(); gridCtx.moveTo(i*15,0); gridCtx.lineTo(i*15,300); gridCtx.stroke();
+    gridCtx.beginPath(); gridCtx.moveTo(0,i*15); gridCtx.lineTo(300,i*15); gridCtx.stroke();
+  }
+  gridCtx.strokeStyle="#000";
+  gridCtx.beginPath(); gridCtx.moveTo(150,0); gridCtx.lineTo(150,300); gridCtx.stroke();
+  gridCtx.beginPath(); gridCtx.moveTo(0,150); gridCtx.lineTo(300,150); gridCtx.stroke();
+  const px = 150 + target.x * scale; const py = 150 - target.y * scale;
+  gridCtx.fillStyle = "red"; gridCtx.beginPath(); gridCtx.arc(px,py,6,0,Math.PI*2); gridCtx.fill();
+}
+
+function drawCourse() {
+  courseCtx.clearRect(0,0,300,300);
+  const hole = targetToCourse();
+  courseCtx.fillStyle = "#66bb6a"; courseCtx.fillRect(0,0,300,300);
+  courseCtx.fillStyle="black"; courseCtx.beginPath(); courseCtx.arc(hole.x,hole.y,8,0,Math.PI*2); courseCtx.fill();
+  courseCtx.strokeStyle="red"; courseCtx.beginPath(); courseCtx.moveTo(hole.x,hole.y); courseCtx.lineTo(hole.x,hole.y-40); courseCtx.stroke();
+  if(swinging){ courseCtx.strokeStyle="brown"; courseCtx.beginPath(); courseCtx.moveTo(ball.x-5, ball.y+5); courseCtx.lineTo(ball.x+20, ball.y-20); courseCtx.stroke(); }
+  courseCtx.fillStyle="white"; courseCtx.beginPath(); courseCtx.arc(ball.x,ball.y,6,0,Math.PI*2); courseCtx.fill();
+}
+
+function newTarget(){
+  target.x = Math.floor(Math.random()*21)-10;
+  target.y = Math.floor(Math.random()*21)-10;
+  drawGrid(); drawCourse();
+}
+
+function animateBallToHole(){
+  ballMoving = true;
+  const hole = targetToCourse();
+  const steps = 30;
+  let count = 0;
+  const startX = ball.x; const startY = ball.y;
+  function step(){
+    count++;
+    ball.x = startX + (hole.x-startX)*(count/steps);
+    ball.y = startY + (hole.y-startY)*(count/steps);
+    drawCourse();
+    if(count < steps){ requestAnimationFrame(step); } 
+    else { ball.x=80; ball.y=220; ballMoving=false; newTarget(); drawCourse(); }
+  }
+  step();
+}
+
+function swing(){
+  swinging = true;
+  drawCourse();
+  setTimeout(()=>{ swinging=false; drawCourse(); },200);
+}
+
+function cleanInput(text){ return text.replace(/[() ]/g, ""); }
+
+function checkGuess(){
+  if(ballMoving || gameOver) return;
+  swing();
+  const raw = document.getElementById("guess").value;
+  const cleaned = cleanInput(raw);
+  const parts = cleaned.split(",");
+  if(parts.length!==2){ document.getElementById("message").textContent="Use format x,y"; return; }
+  const x = Number(parts[0]);
+  const y = Number(parts[1]);
+  if(x===target.x && y===target.y){
+    score++;
+    document.getElementById("message").textContent="Great shot! ⛳";
+    document.getElementById("score").textContent=score;
+    animateBallToHole();
+  } else {
+    lives--;
+    document.getElementById("lives").textContent=lives;
+    document.getElementById("message").textContent="Missed! You lost a life.";
+    if(lives<=0){
+      gameOver=true;
+      document.getElementById("message").textContent="Game Over! Final Score: "+score;
+      document.getElementById("swingBtn").disabled=true;
+    }
+  }
+}
+
+function startTimer(){
+  const timerInterval = setInterval(()=>{
+    if(timeLeft <= 0 || gameOver){
+      clearInterval(timerInterval);
+      gameOver=true;
+      document.getElementById("message").textContent = "Time's up! Final Score: " + score;
+      document.getElementById("swingBtn").disabled=true;
+      return;
+    }
+    timeLeft--;
+    document.getElementById("time").textContent = timeLeft;
+  },1000);
+}
+
+newTarget();
+startTimer();
+</script>
+
+</body>
+</html>
