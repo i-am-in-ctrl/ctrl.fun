@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Coin Sequence Game (Solo)</title>
+<style>
+body{font-family:Arial,Helvetica,sans-serif;text-align:center;background:#f5f5f5}
+.container{max-width:900px;margin:auto;padding:20px}
+button{padding:10px 16px;margin:6px;font-size:16px;border-radius:8px;border:1px solid #333;cursor:pointer;background:white}
+button:hover{background:#e8e8e8}
+.panel{background:white;padding:20px;border-radius:12px;margin-top:20px;box-shadow:0 4px 10px rgba(0,0,0,0.1)}
+#score{font-size:22px;margin-top:10px}
+#computerChoice{font-size:20px;font-weight:bold}
+</style>
+</head>
+<body>
+<div class="container">
+<h2>Coin Sequence Game — Solo Mode</h2>
+<p>The computer chooses a sequence first. You choose one of the eight options to play against it. Each round runs <b>1000 simulations</b>. First to <b>5001</b> wins.</p>
+
+<div class="panel">
+<h3>Computer's Sequence</h3>
+<div id="computerChoice"></div>
+</div>
+
+<div class="panel">
+<h3>Choose your sequence</h3>
+<div id="buttons"></div>
+</div>
+
+<div class="panel">
+<h3>Score</h3>
+<div id="score">Computer: 0 | Player: 0</div>
+</div>
+
+<div class="panel">
+<button onclick="resetGame()">Reset Game</button>
+<div id="results"></div>
+</div>
+</div>
+
+<script>
+const sequences=["HHH","HHT","HTH","HTT","THH","THT","TTH","TTT"];
+
+let compSeq=null;
+let playerSeq=null;
+
+let scores=[0,0];
+
+const buttonsDiv=document.getElementById("buttons");
+const results=document.getElementById("results");
+const scoreDiv=document.getElementById("score");
+const computerChoiceDiv=document.getElementById("computerChoice");
+
+function randomSequence(){
+ return sequences[Math.floor(Math.random()*sequences.length)];
+}
+
+function renderButtons(){
+ buttonsDiv.innerHTML="";
+
+ sequences.forEach(s=>{
+  const b=document.createElement("button");
+  b.textContent=s;
+  b.onclick=()=>choosePlayer(s);
+  buttonsDiv.appendChild(b);
+ });
+}
+
+function choosePlayer(seq){
+ playerSeq=seq;
+ runRound();
+}
+
+function toss(){
+ return Math.random()<0.5?"H":"T";
+}
+
+function playRound(a,b){
+ let seq="";
+ while(true){
+  seq+=toss();
+  if(seq.length>=3){
+   let last=seq.slice(-3);
+   if(last===a) return 1;
+   if(last===b) return 2;
+  }
+ }
+}
+
+function runRound(){
+
+ let compWins=0;
+ let playerWins=0;
+
+ for(let i=0;i<1000;i++){
+  let w=playRound(compSeq,playerSeq);
+  if(w===1) compWins++; else playerWins++;
+ }
+
+ scores[0]+=compWins;
+ scores[1]+=playerWins;
+
+ updateScore();
+
+ results.innerHTML=`<p>Round result: Computer ${compWins} – ${playerWins} Player</p>`;
+
+ if(scores[0]>=5001 || scores[1]>=5001){
+
+  buttonsDiv.innerHTML="";
+
+  let champ = scores[0]>=5001 ? "Computer" : "Player";
+
+  results.innerHTML+=`<p><b>${champ} wins the game!</b></p>`;
+
+  return;
+ }
+
+ nextRound();
+}
+
+function nextRound(){
+ playerSeq=null;
+ compSeq=randomSequence();
+ computerChoiceDiv.textContent=compSeq;
+}
+
+function updateScore(){
+ scoreDiv.textContent=`Computer: ${scores[0]} | Player: ${scores[1]}`;
+}
+
+function resetGame(){
+ scores=[0,0];
+ results.innerHTML="";
+
+ compSeq=randomSequence();
+ computerChoiceDiv.textContent=compSeq;
+
+ updateScore();
+ renderButtons();
+}
+
+renderButtons();
+resetGame();
+</script>
+</body>
+</html>
